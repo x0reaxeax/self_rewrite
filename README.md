@@ -121,6 +121,8 @@ unsigned char print_opcode(unsigned char *byte) {
 And the actual check:
 
 ```c
+#define	OPCODE_INDENT	0x1d
+
 int main(void) {
   /* ... */
   
