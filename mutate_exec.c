@@ -91,11 +91,11 @@ int main(void) {
 
     /* verify nops */
     for (int i = 0; i < (0x16 + 0xc); i++) {
-		    if (print_opcode(opc_ptr) != 0x90) {
-			    printf("not all nops could be verified!\n");
-			    return 1;
-		    }
-		    opc_ptr++;
+	if (print_opcode(opc_ptr) != 0x90) {
+		printf("not all nops could be verified!\n");
+		return 1;
+	}
+	opc_ptr++;
     }
 
     /* restore position */
