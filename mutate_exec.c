@@ -3,11 +3,7 @@
 #include <unistd.h>         /* getpagesize() */
 #include <sys/mman.h>       /* mprotect() */
 
-static int rw = 0;
-
 int unlock_text_segment(unsigned char *addr) {
-	if (rw == 1) { return 0; }
-
 	int pagesz = getpagesize();
 	addr -= (unsigned long) addr % pagesz;
 
@@ -15,10 +11,9 @@ int unlock_text_segment(unsigned char *addr) {
 
 	int chmem = mprotect(addr, pagesz, PROT_READ | PROT_WRITE | PROT_EXEC);
 	if (chmem != 0) {
-		printf("[e%d] failed to set rwx on text segment\n", chmem);
-		return 1;
+		fprintf(stderr, "[e%d] failed to set rwx on text segment\n", chmem);
+		return chmem;
 	}
-	rw = 1;
 }
 
 unsigned char print_opcode(unsigned char *byte) {
@@ -91,8 +86,6 @@ int main(void) {
     __asm volatile ("nop"); // 80   0x80
     __asm volatile ("nop"); // 5d   pop ebp ; this doesnt get executed, I used it as sort of a boundary while debugging
 
-    //__asm volatile("xor %eax, %eax");
-
     unsigned char (*mainptr)() = main;
     unsigned char *opc_ptr = mainptr + OPCODE_INDENT;
 
@@ -109,7 +102,10 @@ int main(void) {
     opc_ptr = mainptr + OPCODE_INDENT;
 
     int rwret = unlock_text_segment(main);
-    if (rwret != 0) { return 1; }
+    if (rwret != 0) { 
+	fprintf(stderr, "[E%d] Failed to get rwx on text segment\n", rwret);	
+	return 1;
+    }
 
     printf("[mprotect] rw set!\n");
 
